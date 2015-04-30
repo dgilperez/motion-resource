@@ -1,31 +1,34 @@
 module MotionResource
   class Base
     include MotionSupport::DescendantsTracker
-    
+
     class_attribute :primary_key
     self.primary_key = :id
-    
+
     attr_accessor :id
-    
+
     def initialize(params = {})
       @new_record = true
       update_attributes(params)
     end
-    
+
     def new_record?
       @new_record
     end
-    
+
     class << self
       def instantiate(json)
         if json.is_a?(Hash)
           json = json.symbolize_keys
+
+          root = json_root.singularize.to_sym
+          json = json[root] if json.has_key?(root)
         else
           json = { primary_key => json.to_i }
         end
-        
+
         raise ArgumentError, "No :#{primary_key} parameter given for #{self.name}.instantiate" unless json[primary_key]
-        
+
         klass = if json[:type]
           begin
             Object.const_get(json[:type].to_s)
@@ -35,7 +38,7 @@ module MotionResource
         else
           self
         end
-        
+
         if result = klass.recall(json[primary_key])
           result.update_attributes(json)
         else
@@ -45,7 +48,7 @@ module MotionResource
         result.send(:instance_variable_set, "@new_record", false)
         result
       end
-      
+
       def json_root
         self.name.underscore.pluralize
       end
@@ -53,11 +56,11 @@ module MotionResource
       def identity_map
         @identity_map ||= {}
       end
-      
+
       def remember(id, value)
         identity_map[id] = value
       end
-      
+
       def recall(id)
         identity_map[id]
       end
