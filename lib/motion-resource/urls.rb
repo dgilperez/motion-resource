@@ -19,13 +19,13 @@ module MotionResource
           end
         end
       end
-      
+
       def collection_url_or_default
-        collection_url || name.underscore.pluralize
+        collection_url || json_root
       end
-      
+
       def member_url_or_default
-        member_url || "#{name.underscore.pluralize}/:#{primary_key}"
+        member_url || "#{json_root}/:#{primary_key}"
       end
 
     end
